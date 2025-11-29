@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>马基雅维利黑暗三角人格测试 - 疯狂动物城版</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.staticfile.org/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap');
+        body { font-family: 'Noto Sans SC', sans-serif; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        
+        .fade-in { animation: fadeIn 0.6s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .slide-in { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { width: 0; } to { width: 100%; } }
+
+        /* Card Hover Effect */
+        .hover-card { transition: all 0.3s ease; }
+        .hover-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 selection:bg-purple-200 min-h-screen">
+
+    <!-- Watermark: Subtle & Fixed -->
+    <div class="fixed bottom-4 right-4 z-50 pointer-events-none text-gray-400/50 text-xs md:text-sm font-bold select-none">
+        小红书-心灵栖息树原创 侵权必究
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app" class="relative z-10">
+        <!-- Content injected by JS -->
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- DATA ---
+        const TRAITS = {
+            GREED: '贪婪', EGOISM: '利己主义', MALICE: '恶毒倾向', SELF_CENTRISM: '自我为中心',
+            SADISM: '施虐倾向', PSYCHOPATHY: '精神变态', ENTITLEMENT: '心理权利', NARCISSISM: '自恋', MORAL_DISENGAGEMENT: '道德推脱'
+        };
+
+        const QUESTIONS = [
+            // Greed
+            { text: "为了赚更多的钱，通过捷径办事是可以接受的。", trait: 'GREED' },
+            { text: "无论我拥有多少，我总是想要更多。", trait: 'GREED' },
+            { text: "在这个世界上，金钱比人际关系更重要。", trait: 'GREED' },
+            { text: "如果能让我致富，我不介意稍微违反规则。", trait: 'GREED' },
+            { text: "看到别人拥有我没有的东西，我会感到非常不舒服。", trait: 'GREED' },
+            { text: "即便生活富足，我也很难感到满足。", trait: 'GREED' },
+            { text: "我认为展示财富是成功的标志。", trait: 'GREED' },
+            // Egoism
+            { text: "如果这对我没有好处，我就不会去做。", trait: 'EGOISM' },
+            { text: "只要我能成功，别人的损失与我无关。", trait: 'EGOISM' },
+            { text: "在困难的情况下，我首先考虑保护自己。", trait: 'EGOISM' },
+            { text: "帮助别人通常是在浪费时间。", trait: 'EGOISM' },
+            { text: "人们通过利用他人来获得成功是正常的。", trait: 'EGOISM' },
+            { text: "我很少为了集体的利益而牺牲自己的利益。", trait: 'EGOISM' },
+            // Malice
+            { text: "看到讨厌的人失败，我会感到一丝快感。", trait: 'MALICE' },
+            { text: "如果有人伤害了我，我一定会报复。", trait: 'MALICE' },
+            { text: "有时候我只是想让事情变得混乱，看看会发生什么。", trait: 'MALICE' },
+            { text: "我喜欢在谈话中暗中刺痛别人。", trait: 'MALICE' },
+            { text: "即使对我没有直接好处，我也可能给不喜欢的人使绊子。", trait: 'MALICE' },
+            { text: "我不介意在背后说别人的坏话。", trait: 'MALICE' },
+            // Self-centrism
+            { text: "我经常打断别人的话，因为我的观点更重要。", trait: 'SELF_CENTRISM' },
+            { text: "我很难从别人的角度看问题。", trait: 'SELF_CENTRISM' },
+            { text: "事情如果不按我的方式发展，我会很生气。", trait: 'SELF_CENTRISM' },
+            { text: "我是我社交圈子的核心。", trait: 'SELF_CENTRISM' },
+            { text: "别人的问题通常都很无聊。", trait: 'SELF_CENTRISM' },
+            { text: "我习惯于让别人适应我的计划。", trait: 'SELF_CENTRISM' },
+            { text: "我认为我的经历比大多数人的更独特。", trait: 'SELF_CENTRISM' },
+            // Sadism
+            { text: "在游戏中羞辱对手让我感到兴奋。", trait: 'SADISM' },
+            { text: "看到别人身体疼痛或情绪崩溃的视频，我并不反感。", trait: 'SADISM' },
+            { text: "有时候我会故意说些伤人的话。", trait: 'SADISM' },
+            { text: "支配和控制别人让我感觉良好。", trait: 'SADISM' },
+            { text: "我喜欢看恐怖片中角色受折磨的情节。", trait: 'SADISM' },
+            { text: "如果我有权力，我会让那些我不喜欢的人受苦。", trait: 'SADISM' },
+            // Psychopathy
+            { text: "我很少感到内疚或悔恨。", trait: 'PSYCHOPATHY' },
+            { text: "我经常在各种场合撒谎以达到目的。", trait: 'PSYCHOPATHY' },
+            { text: "我很难理解为什么人们会因为电影情节而哭泣。", trait: 'PSYCHOPATHY' },
+            { text: "我也许应该更关心别人，但我做不到。", trait: 'PSYCHOPATHY' },
+            { text: "如果后果不严重，各种冒险行为我都愿意尝试。", trait: 'PSYCHOPATHY' },
+            { text: "人们说我很冷漠，但这只是理性。", trait: 'PSYCHOPATHY' },
+            { text: "只要能逃脱惩罚，道德并不是束缚。", trait: 'PSYCHOPATHY' },
+            // Entitlement
+            { text: "我理应得到比别人更好的待遇。", trait: 'ENTITLEMENT' },
+            { text: "我不应该像普通人那样排队等待。", trait: 'ENTITLEMENT' },
+            { text: "如果你不能给我想要的，那是你的无能。", trait: 'ENTITLEMENT' },
+            { text: "我生来就注定要成为领导者。", trait: 'ENTITLEMENT' },
+            { text: "我很讨厌别人告诉我该做什么。", trait: 'ENTITLEMENT' },
+            { text: "我的时间比别人的时间更有价值。", trait: 'ENTITLEMENT' },
+            { text: "我认为我应该自然而然地获得优待。", trait: 'ENTITLEMENT' },
+            // Narcissism
+            { text: "我喜欢照镜子欣赏自己。", trait: 'NARCISSISM' },
+            { text: "我渴望得到别人的赞赏和关注。", trait: 'NARCISSISM' },
+            { text: "我认为大多数人都比不上我。", trait: 'NARCISSISM' },
+            { text: "我很容易在人群中脱颖而出。", trait: 'NARCISSISM' },
+            { text: "向别人展示我的成就是很重要的。", trait: 'NARCISSISM' },
+            { text: "我经常幻想自己拥有无限的权力或美貌。", trait: 'NARCISSISM' },
+            { text: "我希望人们能崇拜我。", trait: 'NARCISSISM' },
+            // Moral Disengagement
+            { text: "只要目的是好的，手段不重要。", trait: 'MORAL_DISENGAGEMENT' },
+            { text: "比起那些大公司做的事，我做这点坏事不算什么。", trait: 'MORAL_DISENGAGEMENT' },
+            { text: "如果别人太蠢被骗了，那是他们自己的错。", trait: 'MORAL_DISENGAGEMENT' },
+            { text: "规则只是给那些不敢打破它们的人制定的。", trait: 'MORAL_DISENGAGEMENT' },
+            { text: "为了生存，有时候必须不择手段。", trait: 'MORAL_DISENGAGEMENT' },
+            { text: "人们总是把道德看得太重了。", trait: 'MORAL_DISENGAGEMENT' },
+            { text: "如果上级命令我做坏事，那不是我的责任。", trait: 'MORAL_DISENGAGEMENT' }
+        ];
+
+        // Extended Character Data with Analysis
+        const CHARACTERS = [
+            {
+                name: "加里 (Gary) - 潜伏的毒蛇",
+                minD: 4.2,
+                desc: "在《疯狂动物城2》的阴影中游走，你像毒蛇加里一样，是一个绝对的观察者和操纵者。",
+                quote: "“只要猎物进网，我不介意多等一秒。”",
+                tags: ["#绝对理性", "#狩猎者", "#混乱中立"],
+                light: "你的大脑屏蔽了多余的情感干扰，这让你在危机时刻拥有极其可怕的冷静判断力。",
+                shadow: "极度的利己可能导致你在团队中被孤立，人们敬畏你，但绝不会信任你。",
+                strategy: "适合作为幕后操盘手，避免直接的情感劳动，利用你的布局能力掌控全局。"
+            },
+            {
+                name: "道格 (Doug) - 冷酷化学家",
+                minD: 3.5,
+                desc: "像在幕后调制午夜嚎叫的道格一样，你是一个执行力极强且缺乏同理心的技术型人才。",
+                quote: "“这只是化学反应，别太感情用事。”",
+                tags: ["#高效执行", "#情感隔离", "#目的导向"],
+                light: "你是天生的任务终结者。只要目标明确，你可以排除万难，不被道德包袱拖累。",
+                shadow: "你可能经常无意中伤害亲近的人而不自知，将人际关系视为一种交易。",
+                strategy: "寻找注重结果而非过程的领域，你的冷酷是解决复杂问题的利刃。"
+            },
+            {
+                name: "尼克 (Nick Wilde) - 狡黠狐狸 (初期)",
+                minD: 2.8,
+                desc: "你拥有尼克那样的街头智慧和适度的犬儒主义。你的道德推脱分数较高，这源于你对世界的防备。",
+                quote: "“别让他们看到你的眼泪。”",
+                tags: ["#街头智慧", "#防御性伪装", "#洞察世故"],
+                light: "你极其擅长读懂潜规则和人心，这让你在复杂的社会关系中游刃有余。",
+                shadow: "过度的防备心让你很难建立深层的亲密关系，你用玩世不恭掩盖了内心的渴望。",
+                strategy: "你的同理心并未消失只是被藏起来了。适合从事谈判、公关或需要博弈的行业。"
+            },
+            {
+                name: "大先生 (Mr. Big) - 秩序教父",
+                minD: 2.2,
+                desc: "你的心理权利和自恋分数较高，就像这位冰川镇的教父。虽然手段强硬，但你讲究原则和忠诚。",
+                quote: "“我们是一家人，但不要挑战我的底线。”",
+                tags: ["#家族观念", "#控制欲", "#荣誉感"],
+                light: "你有天生的领袖气质，能够建立秩序并庇护你的追随者。",
+                shadow: "当你的权威受到挑战时，你容易表现出过度的攻击性，警惕刚愎自用。",
+                strategy: "建立属于你的小圈子，你的力量来自于忠诚的盟友体系。"
+            },
+            {
+                name: "朱迪 (Judy Hopps) - 正义警官",
+                minD: 0,
+                desc: "你的D因子很低，不仅不是黑暗人格，反而是光明的代表。像朱迪一样，你相信世界可以变得更美好。",
+                quote: "“尝试让世界变得更美好。”",
+                tags: ["#理想主义", "#共情者", "#光明骑士"],
+                light: "你拥有强大的感召力，人们愿意信任你并与你合作，这是最高级的生存策略。",
+                shadow: "在面对真正的恶意时，你可能显得过于天真，容易成为捕食者的目标。",
+                strategy: "你需要寻找价值观一致的团队，并学会识别那些试图利用你善良的人。"
+            }
+        ];
+
+        // --- ICONS ---
+        const ICONS = {
+            ghost: `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-900"><path d="M9 10h.01"/><path d="M15 10h.01"/><path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"/></svg>`,
+            brain: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>`,
+            target: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
+            shield: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>`,
+            zap: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+            crown: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>`,
+            scale: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>`,
+            share: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>`,
+            heartCrack: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="m12 13-3-3"/><path d="m12 13 3-3"/></svg>`,
+            sun: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
+            moon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
+            compass: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>`
+        };
+
+        // --- APP LOGIC ---
+        let currentState = { step: 'intro', qIndex: 0, answers: [] };
+        const app = document.getElementById('app');
+
+        function renderIntro() {
+            app.innerHTML = `
+                <div class="flex flex-col items-center justify-center min-h-screen p-6 text-center max-w-2xl mx-auto fade-in">
+                    <div class="bg-white/90 backdrop-blur-sm p-10 rounded-3xl shadow-2xl border-4 border-gray-900">
+                        <div class="mb-6 flex justify-center">${ICONS.ghost}</div>
+                        <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
+                            马基雅维利<br/><span class="text-purple-700">黑暗三角人格测试</span>
+                        </h1>
+                        <div class="bg-purple-100 text-purple-900 px-4 py-2 rounded-full font-bold text-sm mb-6 inline-block">
+                            ZOOTOPIA 2 特别版
+                        </div>
+                        <p class="text-gray-600 mb-8 leading-relaxed text-lg">
+                            通过 <strong>60道深层心理题</strong>，揭示你内心深处的 D因子 (Dark Factor)。<br/>
+                            <span class="text-sm text-gray-500 mt-2 block">不仅是测试，更是一份关于你如何在这个残酷世界生存的深度报告。</span>
+                        </p>
+                        
+                        <div class="grid grid-cols-3 gap-4 mb-8 text-sm text-gray-500">
+                            <div class="flex flex-col items-center">
+                                <div class="mb-2 text-gray-800">${ICONS.brain}</div>
+                                <span>光影解析</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="mb-2 text-gray-800">${ICONS.target}</div>
+                                <span>人格雷达</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="mb-2 text-gray-800">${ICONS.shield}</div>
+                                <span>生态位匹配</span>
+                            </div>
+                        </div>
+
+                        <button onclick="startQuiz()" class="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-gray-900 font-lg rounded-full hover:bg-purple-800 hover:scale-105 focus:outline-none ring-offset-2 focus:ring-2 ring-gray-900">
+                            <span>开始探索</span>
+                            <span class="ml-2 group-hover:animate-pulse">${ICONS.zap}</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderQuiz() {
+            const q = QUESTIONS[currentState.qIndex];
+            const progress = ((currentState.qIndex + 1) / QUESTIONS.length) * 100;
+
+            app.innerHTML = `
+                <div class="flex flex-col items-center justify-center min-h-screen p-4 max-w-2xl mx-auto fade-in">
+                    <div class="w-full bg-white/95 backdrop-blur rounded-2xl shadow-xl p-8 border-t-8 border-purple-800">
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
+                            <div class="bg-purple-800 h-2.5 rounded-full slide-in" style="width: ${progress}%"></div>
+                        </div>
+
+                        <div class="flex justify-between items-center mb-6 text-gray-400 text-sm font-mono">
+                            <span>QUESTION ${currentState.qIndex + 1} / ${QUESTIONS.length}</span>
+                        </div>
+
+                        <h2 class="text-2xl font-bold text-gray-800 mb-10 leading-snug min-h-[4rem]">${q.text}</h2>
+
+                        <div class="space-y-3">
+                            ${generateOptions()}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateOptions() {
+            const options = [
+                { s: 1, l: "完全不同意", c: "hover:bg-green-50 hover:border-green-500" },
+                { s: 2, l: "比较不同意", c: "hover:bg-lime-50 hover:border-lime-500" },
+                { s: 3, l: "中立", c: "hover:bg-gray-50 hover:border-gray-500" },
+                { s: 4, l: "比较同意", c: "hover:bg-orange-50 hover:border-orange-500" },
+                { s: 5, l: "完全同意", c: "hover:bg-red-50 hover:border-red-900 hover:text-red-900" }
+            ];
+            return options.map(opt => `
+                <button onclick="handleAnswer(${opt.s})" class="w-full p-4 text-left border-2 border-gray-100 rounded-xl transition-all duration-200 font-medium text-gray-600 ${opt.c} flex justify-between group active:scale-[0.98]">
+                    <span>${opt.l}</span>
+                </button>
+            `).join('');
+        }
+
+        function renderResult(resultData) {
+            const { scores, character, traitScores } = resultData;
+            
+            // Generate Tags HTML
+            const tagsHtml = character.tags.map(tag => 
+                `<span class="inline-block bg-gray-900 text-white text-xs px-3 py-1 rounded-full mr-2 mb-2 font-bold tracking-wider">${tag}</span>`
+            ).join('');
+
+            app.innerHTML = `
+                <div class="flex flex-col items-center min-h-screen p-4 pb-20 max-w-4xl mx-auto fade-in">
+                    
+                    <!-- 1. Header Card: Score & Character -->
+                    <div class="w-full bg-white rounded-3xl shadow-xl overflow-hidden mb-6 border-b-8 border-purple-900 hover-card">
+                        <div class="bg-gray-900 text-white p-8 text-center relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-500 via-transparent to-transparent"></div>
+                            <p class="text-purple-300 font-mono mb-2 uppercase tracking-widest text-xs">Dark Factor Score</p>
+                            <div class="text-7xl font-black tracking-tighter mb-2 relative z-10">
+                                ${scores.dFactor}<span class="text-2xl text-gray-500 font-normal ml-2">/ 5.0</span>
+                            </div>
+                            <div class="mt-2">${tagsHtml}</div>
+                        </div>
+
+                        <div class="p-8 bg-gradient-to-br from-purple-50 to-white">
+                            <div class="flex flex-col md:flex-row items-center gap-8">
+                                <div class="flex-1 text-center md:text-left">
+                                    <div class="flex items-center justify-center md:justify-start gap-2 mb-2 text-purple-900 font-bold uppercase text-xs tracking-wider">
+                                        ${ICONS.crown} <span>疯狂动物城 2 角色匹配</span>
+                                    </div>
+                                    <h2 class="text-3xl font-bold text-gray-900 mb-2">${character.name}</h2>
+                                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">${character.desc}</p>
+                                    <div class="bg-purple-100 border-l-4 border-purple-800 p-4 italic text-gray-800 text-sm font-medium">
+                                        ${character.quote}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Share Button -->
+                    <button id="copyBtn" onclick="copyResult('${character.name}', '${scores.dFactor}', '${character.quote}')" class="mb-8 w-full md:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold transition-all shadow-md transform hover:scale-105 active:scale-95 bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:shadow-lg">
+                        ${ICONS.share} 一键复制分享结果
+                    </button>
+
+                    <!-- 3. Deep Analysis Grid (New Section) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mb-6">
+                        <!-- Light & Shadow -->
+                        <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 hover-card">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-2">
+                                ${ICONS.brain} 光影侧写
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="flex gap-3">
+                                    <div class="mt-1 flex-shrink-0">${ICONS.sun}</div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-gray-900">天赋光面</h4>
+                                        <p class="text-xs text-gray-600 leading-relaxed mt-1">${character.light}</p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3">
+                                    <div class="mt-1 flex-shrink-0">${ICONS.moon}</div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-gray-900">阴影盲区</h4>
+                                        <p class="text-xs text-gray-600 leading-relaxed mt-1">${character.shadow}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Survival Strategy -->
+                        <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex flex-col hover-card">
+                             <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2 border-b pb-2">
+                                ${ICONS.compass} 生存策略
+                            </h3>
+                            <div class="flex-1 flex flex-col justify-center">
+                                <p class="text-sm text-gray-700 leading-7 font-medium">
+                                    ${character.strategy}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Data Visualization Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                        <div class="bg-white p-6 rounded-2xl shadow-lg flex flex-col items-center border border-gray-100 hover-card">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">${ICONS.target} 人格雷达</h3>
+                            <div class="w-full h-64 md:h-80 relative">
+                                <canvas id="radarChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 hover-card">
+                            <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">${ICONS.scale} 维度拆解</h3>
+                            <div class="space-y-4 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                                ${generateTraitList(traitScores)}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="restartQuiz()" class="mt-12 text-gray-400 hover:text-gray-900 underline underline-offset-4 text-sm transition-colors flex items-center gap-2">
+                         重新开始测试
+                    </button>
+
+                    <div class="mt-8 p-4 bg-yellow-50 text-yellow-800 text-xs rounded-lg max-w-xl text-center border border-yellow-100">
+                        <span class="inline-block align-middle mr-1">${ICONS.heartCrack}</span>
+                        <strong>声明：</strong> 本测试仅供娱乐与自我探索，不构成专业心理学诊断。
+                    </div>
+                </div>
+            `;
+            
+            initChart(traitScores);
+        }
+
+        function generateTraitList(traitScores) {
+            return Object.entries(traitScores).sort(([,a], [,b]) => b - a).map(([trait, score]) => `
+                <div class="flex items-center justify-between group p-2 hover:bg-gray-50 rounded-lg transition-colors">
+                    <span class="text-sm font-medium text-gray-600">${trait}</span>
+                    <div class="flex items-center gap-3 w-1/2">
+                        <div class="w-full bg-gray-100 rounded-full h-2">
+                            <div class="h-2 rounded-full transition-all duration-500 ${score > 3.5 ? 'bg-red-500' : score > 2.5 ? 'bg-purple-500' : 'bg-green-500'}" style="width: ${(score/5)*100}%"></div>
+                        </div>
+                        <span class="text-sm font-bold w-6 text-right text-gray-700">${score}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function startQuiz() {
+            currentState.step = 'quiz';
+            renderQuiz();
+            window.scrollTo(0,0);
+        }
+
+        function handleAnswer(score) {
+            currentState.answers.push(score);
+            currentState.qIndex++;
+            if (currentState.qIndex < QUESTIONS.length) {
+                renderQuiz();
+                window.scrollTo(0,0);
+            } else {
+                calculateAndShowResult();
+            }
+        }
+
+        function calculateAndShowResult() {
+            const traitScoresRaw = {};
+            const traitCounts = {};
+            Object.values(TRAITS).forEach(t => { traitScoresRaw[t] = 0; traitCounts[t] = 0; });
+            
+            currentState.answers.forEach((score, idx) => {
+                const tName = TRAITS[QUESTIONS[idx].trait];
+                traitScoresRaw[tName] += score;
+                traitCounts[tName] += 1;
+            });
+
+            const traitScores = {};
+            let total = 0;
+            Object.keys(traitScoresRaw).forEach(k => {
+                const avg = traitScoresRaw[k] / traitCounts[k];
+                traitScores[k] = avg.toFixed(1);
+                total += avg;
+            });
+
+            const dFactor = (total / 9).toFixed(2);
+            const character = CHARACTERS.find(c => parseFloat(dFactor) >= c.minD) || CHARACTERS[CHARACTERS.length - 1];
+            renderResult({ scores: { dFactor }, character, traitScores });
+            window.scrollTo(0,0);
+        }
+
+        function initChart(traitScores) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            const labels = Object.keys(traitScores);
+            const data = Object.values(traitScores);
+            const avgData = labels.map(() => 2.6);
+
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '你的 D-Profile',
+                            data: data,
+                            backgroundColor: 'rgba(88, 28, 135, 0.5)',
+                            borderColor: 'rgba(88, 28, 135, 1)',
+                            pointBackgroundColor: 'rgba(88, 28, 135, 1)',
+                            borderWidth: 2
+                        },
+                        {
+                            label: '人群平均',
+                            data: avgData,
+                            backgroundColor: 'rgba(156, 163, 175, 0.2)',
+                            borderColor: 'rgba(156, 163, 175, 0.6)',
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0,0,0,0.1)' },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            pointLabels: {
+                                font: { size: 11, family: "'Noto Sans SC', sans-serif" },
+                                color: '#374151'
+                            },
+                            suggestedMin: 1,
+                            suggestedMax: 5,
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: { legend: { position: 'bottom' } },
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function copyResult(name, score, quote) {
+             // Updated share text to include tags
+             const text = `🦊 疯狂动物城2 · 黑暗三角人格测试报告 🐰\n📊 D-Factor指数：${score} / 5.0\n👤 匹配角色：${name}\n-------------------------\n💬 ${quote}\n-------------------------\n🔗 快来测测你的隐藏人格！\n#疯狂动物城2 #心理测试 #黑暗人格 #心灵栖息树`;
+             const el = document.createElement('textarea');
+             el.value = text;
+             document.body.appendChild(el);
+             el.select();
+             document.execCommand('copy');
+             document.body.removeChild(el);
+             const btn = document.getElementById('copyBtn');
+             const originalText = btn.innerHTML;
+             btn.innerHTML = `✅ 已复制文案`;
+             btn.classList.add('bg-green-600');
+             setTimeout(() => {
+                 btn.innerHTML = originalText;
+                 btn.classList.remove('bg-green-600');
+             }, 2000);
+        }
+
+        function restartQuiz() {
+            currentState = { step: 'intro', qIndex: 0, answers: [] };
+            renderIntro();
+        }
+
+        renderIntro();
+    </script>
+</body>
+</html>
