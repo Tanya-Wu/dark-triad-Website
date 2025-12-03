@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 修改了 viewport 设置，增加了 maximum-scale=1.0, user-scalable=no 来禁止移动端缩放 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>马基雅维利黑暗三角人格测试 - 疯狂动物城版</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,7 +12,18 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap');
-        body { font-family: 'Noto Sans SC', sans-serif; }
+        
+        /* 添加了 touch-action: manipulation 禁止双击缩放，并防止 iOS 文本自动调整 */
+        html {
+            touch-action: manipulation; 
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body { 
+            font-family: 'Noto Sans SC', sans-serif; 
+            /* 禁止移动端点击高亮背景色 */
+            -webkit-tap-highlight-color: transparent;
+        }
         
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
@@ -121,7 +133,8 @@
         ];
 
         // Extended Character Data with Analysis
-        // Note: Array must be sorted by minD DESCENDING for the finding logic to work correctly
+        // SORTED BY DARKNESS: HIGH D (Darkest) -> LOW D (Kindest)
+        // Range adjusted to 1.0 - 5.0 to ensure low scores (1.0) can match Judy/Gary.
         const CHARACTERS = [
             {
                 name: "羊副市长 (Bellwether) - 披着羊皮的狼",
@@ -135,7 +148,7 @@
             },
             {
                 name: "宝伯特 (Bobber) - 渴望认同的野心家",
-                minD: 4.0,
+                minD: 4.1,
                 desc: "林雪猁家族中极力想证明自己的小儿子。你阴险、多疑的背后，其实是一颗害怕被抛弃、害怕成为“异类”的脆弱之心。",
                 quote: "“我不想不一样。”",
                 tags: ["#病态自尊", "#家族边缘人", "#极端手段"],
@@ -145,7 +158,7 @@
             },
             {
                 name: "大先生 (Mr. Big) - 秩序教父",
-                minD: 3.2,
+                minD: 3.7,
                 desc: "虽然体型微小，但你像大先生一样拥有强大的气场。你是黑帮绅士，讲究原则、护短且极为重视家族荣誉，是秩序的建立者。",
                 quote: "“我们是一家人，但不要挑战我的底线。”",
                 tags: ["#家族至上", "#教父气场", "#恩怨分明"],
@@ -155,9 +168,9 @@
             },
             {
                 name: "尼克 (Nick Wilde) - 魅力游侠",
-                minD: 2.7,
+                minD: 3.3,
                 desc: "你是混世魔王，也是缺爱的小狐狸。你像尼克一样用狡猾伪装自己，看透世态炎凉但内心依然保留着对美好的向往。",
-                quote: "“别让他们看到你的眼泪。”",
+                quote: "“怎么？伤了你的小心脏？”",
                 tags: ["#街头智慧", "#防御性伪装", "#痞帅"],
                 light: "你拥有极高的情商和变通能力，能够利用规则的漏洞解决看似无解的难题。",
                 shadow: "过度的防御机制让你很难交付真心，用玩世不恭来逃避深层的情感链接。",
@@ -165,7 +178,7 @@
             },
             {
                 name: "牛局长 (Chief Bogo) - 铁血守护者",
-                minD: 2.3,
+                minD: 2.9,
                 desc: "典型的刀子嘴豆腐心。你像牛局长一样严肃、刻板，对外冷内热，虽然固执但拥有极强的责任感和护短属性。",
                 quote: "“生活不是音乐剧，把这一套收起来！”",
                 tags: ["#硬汉柔情", "#规则捍卫者", "#责任感Max"],
@@ -174,18 +187,18 @@
                 strategy: "保持你的原则，但试着给“意外”留一点空间，也许会有意想不到的惊喜。"
             },
             {
-                name: "闪电 (Flash) - 节奏掌控者",
-                minD: 1.8,
-                desc: "你像树懒闪电一样，拥有一种让人抓狂的从容。你用“慢”来对抗世界的“快”，不仅是一种生活态度，更是一种隐形的掌控力。",
-                quote: "“哈……哈……哈……”",
-                tags: ["#反差萌", "#被动攻击", "#自我节奏"],
-                light: "在这个焦虑的时代，你拥有不被外界打扰的定力，专注于当下的每一个细节。",
-                shadow: "你的“慢”有时是一种无声的反抗，可能会在无意中消磨掉他人的耐心和热情。",
-                strategy: "利用你的节奏感去平复周围的焦虑，但要注意分寸，别让从容变成了拖延。"
+                name: "狸宝 (Nibbles) - 热心万事通",
+                minD: 2.5,
+                desc: "你是湿地市场的“万事通”，像河狸狸宝一样古灵精怪、好奇心爆棚。你思维跳脱，热衷于探险和帮助别人。",
+                quote: "“这事儿门儿清，包在我身上！”",
+                tags: ["#好奇宝宝", "#行动力", "#古道热肠"],
+                light: "你拥有无限的精力和求知欲，乐于助人的品质让你在人群中总是备受欢迎。",
+                shadow: "有时过度的热情和“懂王”属性可能会显得有些聒噪，甚至好心办坏事。",
+                strategy: "保持你的好奇心，但学会倾听他人的需求，你的帮助会变得更有价值。"
             },
             {
                 name: "本杰明 (Clawhauser) - 乐天派警员",
-                minD: 1.3,
+                minD: 2.1,
                 desc: "你是警察局的开心果，像本杰明一样乐观开朗、热爱美食和八卦。虽然没有猛兽的威严，但你的亲和力无人能敌。",
                 quote: "“天哪！这甜甜圈也太好吃了！”",
                 tags: ["#社交达人", "#享乐主义", "#温暖治愈"],
@@ -194,24 +207,24 @@
                 strategy: "继续散发你的快乐能量，它是对抗黑暗最有效的抗抑郁剂。"
             },
             {
-                name: "盖瑞 (Gary) - 治愈系守护者",
-                minD: 0.9,
-                desc: "你是一条善良的蛇，自带“解药”的小天使。虽然外表可能让人畏惧，但你内心柔软，为了让家人重返家园勇敢地守护着真相。",
-                quote: "“家人永远不会把重担放在我一个人肩上，因为蛇没有肩膀。”",
-                tags: ["#解毒天使", "#家族守护者", "#暖心蛇蛇"],
-                light: "你拥有极强的责任感和治愈能力，随身携带的‘解毒笔’不仅解毒，更解人心。",
-                shadow: "你的善良让你总是优先考虑别人，在守护朱迪和家人的时候，别忘了也要保护好自己。",
-                strategy: "继续用你的温暖打破偏见。你的存在证明了，冷血动物也可以拥有最热的心肠。"
+                name: "闪电 (Flash) - 节奏掌控者",
+                minD: 1.7,
+                desc: "你像树懒闪电一样，拥有一种让人抓狂的从容。你用“慢”来对抗世界的“快”，不仅是一种生活态度，更是一种隐形的掌控力。",
+                quote: "“哈……哈……哈……”",
+                tags: ["#反差萌", "#被动攻击", "#自我节奏"],
+                light: "在这个焦虑的时代，你拥有不被外界打扰的定力，专注于当下的每一个细节。",
+                shadow: "你的“慢”有时是一种无声的反抗，可能会在无意中消磨掉他人的耐心和热情。",
+                strategy: "利用你的节奏感去平复周围的焦虑，但要注意分寸，别让从容变成了拖延。"
             },
             {
-                name: "狸宝 (Nibbles) - 热心万事通",
-                minD: 0.5,
-                desc: "你是湿地市场的“万事通”，像河狸狸宝一样古灵精怪、好奇心爆棚。你思维跳脱，热衷于探险和帮助别人。",
-                quote: "“这事儿门儿清，包在我身上！”",
-                tags: ["#好奇宝宝", "#行动力", "#古道热肠"],
-                light: "你拥有无限的精力和求知欲，乐于助人的品质让你在人群中总是备受欢迎。",
-                shadow: "有时过度的热情和“懂王”属性可能会显得有些聒噪，甚至好心办坏事。",
-                strategy: "保持你的好奇心，但学会倾听他人的需求，你的帮助会变得更有价值。"
+                name: "盖瑞 (Gary) - 治愈系守护者",
+                minD: 1.3,
+                desc: "你是一条善良的蛇，自带“解药”的小天使。你随身携带解毒笔，在朱迪遇险时尽心守护，被家人深深爱着。",
+                quote: "“家人永远不会把重担放在我一个人肩上，因为蛇没有肩膀。”",
+                tags: ["#解毒天使", "#家族团宠", "#暖心蛇蛇"],
+                light: "你拥有极强的责任感和治愈能力，你的存在证明了‘冷血动物’也可以拥有最热的心肠。",
+                shadow: "你的善良让你总是优先考虑别人，在守护他人的时候，别忘了也要保护好自己。",
+                strategy: "继续用你的温暖打破偏见，你的善良是你最坚硬的鳞片。"
             },
             {
                 name: "朱迪 (Judy Hopps) - 光明骑士",
